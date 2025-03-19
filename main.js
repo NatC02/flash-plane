@@ -86,3 +86,42 @@ const objects = [];
 const loader = new GLTFLoader();
 const modelURL = './grenade.glb';
 
+window.addEventListener('mousemove', function (e) {
+    // Calc mouse position in normalized device coordinates
+    mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    // Update the raycaster with the new mouse position and camera
+    raycaster.setFromCamera(mousePosition, camera);
+
+    // Find intersections between the raycaster and the plane mesh
+    intersects = raycaster.intersectObject(planeMesh);
+
+    // Check if there is an intersection
+    if (intersects.length > 0) {
+        // Get the first intersection point
+        const intersect = intersects[0];
+
+        // Highlight position by rounding down to the nearest integer and adding 0.5
+        const highlightPos = new THREE.Vector3().copy(intersect.point).floor().addScalar(0.5);
+
+        // Set the position of the highlight mesh
+        highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
+
+        // Checks if an object exists at the highlight position
+        const objectExist = objects.find(function (object) {
+            return (object.position.x === highlightMesh.position.x)
+                && (object.position.z === highlightMesh.position.z)
+        });
+
+        // Change highlight mesh color based on whether an object exists at the highlight position
+        if (!objectExist)
+            highlightMesh.material.color.setHex(0xFFFFFF);
+        else
+            highlightMesh.material.color.setHex(0xFFFF00);
+    }
+});
+
+let finalSceneLoaded = false;  // Flag to track if the final scene has been loaded
+
+let fadeOverlay;
