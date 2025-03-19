@@ -125,3 +125,85 @@ window.addEventListener('mousemove', function (e) {
 let finalSceneLoaded = false;  // Flag to track if the final scene has been loaded
 
 let fadeOverlay;
+
+// Function to initialize the fade-in overlay
+function createFadeOverlay() {
+    fadeOverlay = document.createElement('div');
+    fadeOverlay.style.position = 'absolute';
+    fadeOverlay.style.top = 0;
+    fadeOverlay.style.left = 0;
+    fadeOverlay.style.width = '100%';
+    fadeOverlay.style.height = '100%';
+    fadeOverlay.style.backgroundColor = 'white';
+    fadeOverlay.style.opacity = 0; // Initially fully transparent
+    fadeOverlay.style.transition = 'opacity 1.5s'; // Fade-in transition effect
+    fadeOverlay.style.pointerEvents = 'none';  // Allow mouse events to pass through (bug where overlay blocked the interaction)
+    document.body.appendChild(fadeOverlay);
+}
+
+// Function to replace the scene with a fullscreen video after the fade-in effect
+function replaceSceneWithVideo() {
+    // fade-in overlay if it doesn't exist
+    if (!fadeOverlay) {
+        createFadeOverlay();
+    }
+
+    // trigger fade-in effect
+    fadeOverlay.style.opacity = 1;
+
+    // audio element and set up its properties
+    const audioElement = document.createElement('audio');
+    audioElement.src = './grenade.mp3'; // Replace with your actual audio file path
+    audioElement.autoplay = true; // Start playing as soon as it loads
+    audioElement.loop = false; // Ensure it doesn't loop
+    audioElement.muted = false; // Optional: Mute the audio if you don't want sound
+
+    // Append audio and play in the background
+    document.body.appendChild(audioElement);
+
+    // After the fade-in is complete, clear all objects from the scene and show the video
+    setTimeout(() => {
+        // Clear all objects from the scene
+        while (scene.children.length > 0) {
+            scene.remove(scene.children[0]);
+        }
+
+        // video element for the fullscreen video
+        const videoElement = document.createElement('video');
+        videoElement.src = './video.mp4';
+        videoElement.autoplay = true;
+        videoElement.loop = false;
+        videoElement.muted = false;
+        videoElement.style.position = 'absolute';
+        videoElement.style.top = '0';
+        videoElement.style.left = '0';
+        videoElement.style.width = '100%';
+        videoElement.style.height = '100%';
+        videoElement.style.objectFit = 'cover';
+        document.body.appendChild(videoElement);
+
+        // final scene has loaded
+        finalSceneLoaded = true;
+
+
+
+        // **REPEAT VIDEO OPTIONAL**
+        let playCount = 0;
+        videoElement.addEventListener('ended', function () {
+            playCount++;
+            if (playCount >= 1) {
+                videoElement.pause();
+            } else {
+                videoElement.play();
+            }
+        });
+        // **REPEAT VIDEO OPTIONAL**
+
+
+
+        // Fade out the overlay after the scene has been replaced
+        setTimeout(() => {
+            fadeOverlay.style.opacity = 0; // Fade out
+        }, 500); // Delay fade-out until the new model is loaded
+    }, 1500); // Wait for the fade-in effect to complete before replacing the scene
+}
