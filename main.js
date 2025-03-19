@@ -84,7 +84,7 @@ let intersects;
 const objects = [];
 
 const loader = new GLTFLoader();
-const modelURL = './grenade.glb';
+const modelURL = '/grenade.glb';
 
 window.addEventListener('mousemove', function (e) {
     // Calc mouse position in normalized device coordinates
@@ -153,7 +153,7 @@ function replaceSceneWithVideo() {
 
     // audio element and set up its properties
     const audioElement = document.createElement('audio');
-    audioElement.src = './grenade.mp3'; // Replace with your actual audio file path
+    audioElement.src = '/grenade.mp3';
     audioElement.autoplay = true; // Start playing as soon as it loads
     audioElement.loop = false; // Ensure it doesn't loop
     audioElement.muted = false; // Optional: Mute the audio if you don't want sound
@@ -170,7 +170,7 @@ function replaceSceneWithVideo() {
 
         // video element for the fullscreen video
         const videoElement = document.createElement('video');
-        videoElement.src = './video.mp4';
+        videoElement.src = '/video.mp4';
         videoElement.autoplay = true;
         videoElement.loop = false;
         videoElement.muted = false;
