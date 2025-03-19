@@ -207,3 +207,113 @@ function replaceSceneWithVideo() {
         }, 500); // Delay fade-out until the new model is loaded
     }, 1500); // Wait for the fade-in effect to complete before replacing the scene
 }
+
+// Not used on startup, but you can by calling the func
+createFadeOverlay();
+
+// Handle mouse click to add/remove grenades
+window.addEventListener('mousedown', function () {
+
+    if (finalSceneLoaded) {
+        // don't allow placing new grenades in final scene
+        return;
+    }
+
+    // Check if all grid positions are filled 
+    if (objects.length === 4) {
+        return; // Prevent any further interaction with the grid
+    }
+
+    const objectExist = objects.find(function (object) {
+        return (object.position.x === highlightMesh.position.x)
+            && (object.position.z === highlightMesh.position.z)
+    });
+
+    if (!objectExist) {
+        loader.load(modelURL, function (gltf) {
+            const model = gltf.scene;
+            model.scale.set(.6, .6, .6);
+            model.position.copy(highlightMesh.position);
+            model.userData = { animationStartTime: performance.now() };
+
+            // Add the loaded model to the scene
+            scene.add(model);
+            objects.push(model);
+
+            // Create an AnimationMixer for the model
+            const mixer = new THREE.AnimationMixer(model);
+
+            // if model imported has animations, then play them
+            gltf.animations.forEach((clip) => {
+                const action = mixer.clipAction(clip);
+                action.setLoop(THREE.LoopRepeat, Infinity).play();
+
+                // Control the speed of the animation here
+                action.timeScale = .5; // Adjust animation speed
+            });
+
+            // Store the mixer in the model's userData for future reference
+            model.userData.mixer = mixer;
+
+            highlightMesh.material.color.setHex(0xFFFF00);
+
+            // Check if all grid positions are filled
+            if (objects.length === 4) {
+                setTimeout(() => {
+                    replaceSceneWithVideo();
+                }, 200);
+            }
+        });
+    } else {
+        // Only allow removal if the grid is not full
+        if (objects.length < 4) {
+            const objectToRemove = objects.find(function (object) {
+                return (object.position.x === highlightMesh.position.x)
+                    && (object.position.z === highlightMesh.position.z)
+            });
+
+            if (objectToRemove) {
+                scene.remove(objectToRemove);
+                const index = objects.indexOf(objectToRemove);
+                if (index > -1) {
+                    objects.splice(index, 1);
+                }
+                highlightMesh.material.color.setHex(0xFFFFFF);
+            }
+        }
+    }
+});
+
+
+// Animation loop
+function animate(time) {
+    highlightMesh.material.opacity = 1 + Math.sin(time / 120);
+
+    objects.forEach(function (object) {
+        // Calc individual object animation based on when it was added
+        const timeSinceAdded = (time - object.userData.animationStartTime) / 1000; // Time since the object was added
+
+        // Apply rotation and movement
+        object.rotation.x = timeSinceAdded;
+        object.rotation.z = timeSinceAdded;
+
+        // Make object bounce on its Y position
+        object.position.y = 0.5 + 0.5 * Math.abs(Math.sin(timeSinceAdded));
+
+        // Update animation mixers
+        if (object.userData.mixer) {
+            object.userData.mixer.update(time * 0.001);  // Update animation mixer (time is in ms, so multiply by 0.001)
+        }
+    });
+
+    renderer.render(scene, camera);
+}
+
+renderer.setAnimationLoop(animate);
+
+// Handle window resize
+window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
