@@ -2,6 +2,33 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';  // Import GLTFLoader
 
+
+// Preload media files aggressively
+async function preloadMedia() {
+    try {
+        // Preload video by creating an element and loading it
+        const video = document.createElement('video');
+        video.src = './video.mp4';
+        await video.play().catch(() => video.pause());  // Trigger loading
+
+        // Preload audio similarly
+        const audio = document.createElement('audio');
+        audio.src = './grenade.mp3';
+        await audio.play().catch(() => audio.pause());
+
+        console.log('Media fully preloaded!');
+    } catch (error) {
+        console.error('Preload failed:', error);
+    }
+}
+
+preloadMedia();
+
+
+  const video = document.createElement('video');
+video.src = './video.mp4';
+video.addEventListener('loadeddata', () => console.log('Video preloaded!'));
+video.addEventListener('error', (e) => console.error('Video failed:', e));
 // renderer
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -15,6 +42,15 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 );
+
+export default {
+    server: {
+      headers: {
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Opener-Policy": "same-origin",
+      },
+    },
+  };
 
 camera.position.set(5, 10, -4);
 camera.lookAt(0, 0, 0);
